@@ -1,0 +1,66 @@
+best rn is 59.85% testing accuracy, target at least 70%
+
+initial CNN ( i think was like 4 layers of soemthing), 24%
+
+5 layer convolution + batchnorm + relu + maxpool 42%
+
+added another convolution + batchnorm + relu + maxpool (fail) 36%
+
+added onecycleLR (sucess) 49.11 testing, validation 51.19%
+
+testing wider early layers in gpu 0, 32 to 48, 48 to 96 etc (no change) 51.19%
+testing bigger image rotation augmentation in gpu 1, 20% instead of 10% (fail) 48.69%
+make the one cycle LR peak be like 1e^3 instead of 3e^3 in gpu 2 (fail) 41.81%
+adding random erasing in gpu 3, v2.RandomErasing(
+    p=0.25,
+    scale=(0.02, 0.12),
+    ratio=(0.3, 3.3)
+) (fail) 46.5
+increase drop out from 0.1 to 0.3 in the linear layer in gpu 4, in cs gpu 2 (fail) Final Test Accuracy: 44.59%
+increase drop out from 0.1 to 0.2 in the linear layer in gpu 4, in cs gpu 2  (fail) final test accuray: 47.82%
+
+remove drop out in gpu 4, in cs gpu 2 (no change?) final test accuracy: 52.03%, validation in cs gpu 2, gpu 5, validation 61.28 eval, 50.01 testing, second validation
+52.33 testing, 62.77 eval, this is therefore implemented (success)
+
+
+make trainval split 90:10 in gpu 0, cs gpu 2 (sucess) final test accuracy: 54.76 testing, 68.75% validation, this is without the remove drop out in the linear layer
+
+trainval split 90:10 in gpu 0 with remove dropout in cs gpu 2, testing 54.65, val 67.66 (no change)
+
+trainval split 95:10 in gpu 1 with remove dropout in cs gpu 2, testing 56.20, val 69.2 (success), implemented
+second run:
+test: 56.36 | val: 71.74
+
+change: trainval split 97.5:2.5
+where: cs gpu 2 gpu 1
+test: 57.73 | val: 66.30
+validation: 57.32 | val: 69.57
+(implemented)
+
+change: trainval split 99:1
+where: cs gpu 2 gpu 2
+test: 55.55| val: 72.97
+(no change)
+
+change: label smoothing 0.05 intead of 0.1
+where: cs gpu 2 gpu 3
+test: 55.6 | val: 63.3
+(no change)
+
+change: label smoothing 0.15 intead of 0.1
+where: cs gpu 2 gpu 3
+test: 55.96 | val: 66.3
+(no change)
+
+change: add torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) to remove exploding gradients, from lecture
+where: cs gpu 2 gpu 3
+test: 56.77% | val:  72.83%
+(no change)
+
+change: first convolution layer kernel size be 7*7 instead of 3*3 (inspired by resnet)
+where: cs gpu 2 gpu 3
+test: 57.78%% | val:  83.75%
+test2: 58.65%% | val2:  63.04%
+(implemented)
+
+change: add resblock (inspired by resnet)
