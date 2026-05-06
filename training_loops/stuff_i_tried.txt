@@ -59,8 +59,44 @@ test: 56.77% | val:  72.83%
 
 change: first convolution layer kernel size be 7*7 instead of 3*3 (inspired by resnet)
 where: cs gpu 2 gpu 3
-test: 57.78%% | val:  83.75%
+test: 57.78% | val:  83.75%
 test2: 58.65%% | val2:  63.04%
+test3: 59.20% | val2:  70.65%
+(implemented)
+
+Change: Use image net normalization:
+where: cs gpu 1 gpu 1
+test: 56.53% | val: 66.30%
+
+Change: decrease batch size to 16:
+where: cs gpu 2 gpu 0
+test: 32.87%% | val: 33.70%
+
+Change: decrease batch size to 48:
+where: cs gpu 2 gpu 0
+test: 32.87%% | val: 33.70%
+
+change: padding to be 3 instead of 1 for for the first convolution layer (same as the resnet) bug?
+where: cs gpu 2 gpu 5
+test: 57.29% | val:  68.48%
+test: 57.75% | val: 68.48%
 (implemented)
 
 change: add resblock (inspired by resnet)
+where: cs gpu 1 gpu 1:
+test: 61.38% | val: 72.83%
+where: cs gpu 1 gpu 1:
+test2: 64.21% | val: 71.74%
+where: cs gpu 1 gpu 2:
+test3: 65.17% | val: 72.85%
+where: cs gpu 1 gpu 3:
+test4: 62.44% | val: 72.83%
+test5: 65.03% | val: 73.91
+(implemented)
+
+change: add another resblock in each stage
+where: cs gpu 1 gpu 1:
+test3: 65.17% | val: 72.85%
+where: cs gpu 1 gpu :
+test4: 62.44% | val: 72.83%
+(no change)
