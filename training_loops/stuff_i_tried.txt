@@ -1,4 +1,4 @@
-best rn is 59.85% testing accuracy, target at least 70%
+done target at least 70%
 
 initial CNN ( i think was like 4 layers of soemthing), 24%
 
@@ -100,3 +100,60 @@ test3: 65.17% | val: 72.85%
 where: cs gpu 1 gpu :
 test4: 62.44% | val: 72.83%
 (no change)
+
+change: change resblock into SEResblock (note: training accuracy shows heavy overfitting)
+where cs gpu 1 gpu 1
+val 1: 76.09% | test: 66.67
+where: cs gpu 1 gpu 2
+val 2: 76.09 | test 66.99
+where cs gpu 1 gpu 1
+val 1: 80.40% | test: 66.97
+where: cs gpu 1 gpu 2
+val 2: 79.35 | test 66.01
+(implemented)
+
+change: add widen channels with resblock:
+where cs gpu 1 gpu 3
+val 1:  70.65% | test: 62.88
+where cs gpu 1 gpu 4
+val 2: 72.83 | test: 58.3
+
+change: change resblock into bottomneck resblock:
+where cs gpu 1 gpu 5
+val 1:  71.74% | test 1: 64.68%
+val 2:   72.83% | test 2: 63.53%
+
+change: use mixup and cutmix randomly for the input and labels with SEResblock
+where: cs gpu 1 gpu 3
+val 1: 61.96 | test 1: 53.45
+where: cs gpu 1 gpu 0
+val 59.78%:  | test 2:  56.80%
+(implemented)
+
+change: use mixup only with SEResblock
+Where: cs gpu 1 gpu 4
+val 1: 54.3 | test 51.7
+val 2: 56.52%| test  55.49%
+
+change: use mixup and cutmix randomly but with alpha = 0.1 only after epoch 10
+where cs gpu 1 gpu 6:
+val 1: 79.35% | test 1: 69.61%
+
+change: use mixup and cutmix randomly but with alpha = 0.1 only after epoch 15
+where cs gpu 1 gpu 5:
+val 1: 78.26% | test 1: 68.31%
+
+change: use mixup and cutmix randomly but with alpha = 0.1 only after epoch 20
+where cs gpu 1 gpu 0
+val 1: 80.43: test 1: 69.66
+
+Change: remove validation set
+(way more consistant higher testing accuracy but same as se resblock)
+
+
+change: add one more convolution layer:
+where cs gpu2 gpu 5:
+train: 87.93 test: 71.11
+where: cs gpu2 gpu 7:
+train: 87.31% | test: 72.17%
+(implemented)
