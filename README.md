@@ -1,6 +1,6 @@
 # Oxford-IIIT-Pet-Classifier - University of York machine learning coursework
 ### For the marker
-If you are to check my progress history, please check the commit history for `train.ipynb` instead of the `train.py`
+If you are to check my progress history, please check the  also check the commit history for `train.ipynb` and the `train.py`, I started on the `train.ipynb` then moved on to the `train.py`
 
 ### The goal
 Given the Oxford-IIT-Pet-Classification trainval dataset, create a from scratch convolution network with the highest testing accuracy in 30 epoches, no external data.
