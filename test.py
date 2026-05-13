@@ -21,35 +21,39 @@ class TransformWrapper(Dataset):
     def __len__(self):
         return len(self.subset)
 
-# Resblock but focus on specific channels, fixes gradient vanquishing during backprobagation
+# Training:
+# Resblock but focus on specific channels, residual connection fixes gradient vanquishing during backprobagation
+# ResNet: https://arxiv.org/abs/1512.03385
+# SENet: https://arxiv.org/abs/1709.01507
 class SEResBlock(nn.Module):
-    def __init__(self, channels, reduction=16): # in the paper it says 16 is defaultly good and I tested others, this is best
+    def __init__(self, channels, reduction=16): # in the SENet paper 16 is default and I tested others, this gives highest accuracy
         super().__init__()
-        # The Resblock, this is just exta layers
+        # The Resblock, this is just exta layers not the actual residual connection
         self.block = nn.Sequential(
             nn.Conv2d(channels, channels, 3, padding=1),
             nn.BatchNorm2d(channels),
             nn.ReLU(),
             nn.Conv2d(channels, channels, 3, padding=1),
-            nn.BatchNorm2d(channels), # no relu here
+            nn.BatchNorm2d(channels), # no relu here, want output to go to the residual conneciton first
         )
         # the SE block (squeeze and excitation branch)
         self.se = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1), # squeeze each feature to single num
+            nn.AdaptiveAvgPool2d(1), # squeeze each channel to single num
             nn.Flatten(), # reshapes so it can go into linear layer
             nn.Linear(channels, channels // reduction), # actual excitation bottle neck
-            nn.ReLU(),
+            nn.ReLU(), 
             nn.Linear(channels // reduction, channels), # expends back to per channel weights
             nn.Sigmoid() # squashed to 0 to 1
         )
-        self.relu = nn.ReLU() # define the relu
+        self.relu = nn.ReLU() # define the relu activation function
 
     def forward(self, x):
         out = self.block(x)
         # reweight the images
-        scale = self.se(out).view(x.size(0), -1, 1, 1) 
+        scale = self.se(out).view(x.size(0), -1, 1, 1)
         # the actual residual connection
         return self.relu(x + out * scale) # normal resblock skip connection + reweighted each channel by importance
+
 
 # main CNN inherits nn.Module
 class OxfordPetClassifierCNN(nn.Module):
@@ -116,14 +120,19 @@ test_tfms = v2.Compose([ # this needs to be same as the valuation transform
     v2.ToDtype(torch.float32, scale=True),
     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 ])
+
+# load the testing set
 raw_test_data = datasets.OxfordIIITPet(root="/shared/storage/cs/studentscratch/cqh514", split='test', download=True)
+
+# create the testing dataloader
 test_dataset = TransformWrapper(raw_test_data, transform=test_tfms)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=10)
 
+# define model and load the weights
 model = OxfordPetClassifierCNN(num_classes=37).to(device)
-model.load_state_dict(torch.load(model_save_path))
+model.load_state_dict(torch.load(model_save_path, weights_only=False))
 
-# set to evaulation mode
+# set to evaulation mode disable the batch norm
 model.eval()
 
 correct_test = 0

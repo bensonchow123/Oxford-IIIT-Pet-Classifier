@@ -54,33 +54,35 @@ model_save_path = "/home/userfs/c/cqh514/Documents/Oxford-IIIT-Pet-Classifier/pe
 device = torch.device("cuda") # cuda:1 is gpu 1, cuda:2 is gpu 2, etc
 
 # Training:
-# Resblock but focus on specific channels, fixes gradient vanquishing during backprobagation
+# Resblock but focus on specific channels, residual connection fixes gradient vanquishing during backprobagation
+# ResNet: https://arxiv.org/abs/1512.03385
+# SENet: https://arxiv.org/abs/1709.01507
 class SEResBlock(nn.Module):
-    def __init__(self, channels, reduction=16): # in the paper it says 16 is defaultly good and I tested others, this is best
+    def __init__(self, channels, reduction=16): # in the SENet paper 16 is default and I tested others, this gives highest accuracy
         super().__init__()
-        # The Resblock, this is just exta layers
+        # The Resblock, this is just exta layers not the actual residual connection
         self.block = nn.Sequential(
             nn.Conv2d(channels, channels, 3, padding=1),
             nn.BatchNorm2d(channels),
             nn.ReLU(),
             nn.Conv2d(channels, channels, 3, padding=1),
-            nn.BatchNorm2d(channels), # no relu here
+            nn.BatchNorm2d(channels), # no relu here, want output to go to the residual conneciton first
         )
         # the SE block (squeeze and excitation branch)
         self.se = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1), # squeeze each feature to single num
+            nn.AdaptiveAvgPool2d(1), # squeeze each channel to single num
             nn.Flatten(), # reshapes so it can go into linear layer
             nn.Linear(channels, channels // reduction), # actual excitation bottle neck
-            nn.ReLU(),
+            nn.ReLU(), 
             nn.Linear(channels // reduction, channels), # expends back to per channel weights
             nn.Sigmoid() # squashed to 0 to 1
         )
-        self.relu = nn.ReLU() # define the relu
+        self.relu = nn.ReLU() # define the relu activation function
 
     def forward(self, x):
         out = self.block(x)
         # reweight the images
-        scale = self.se(out).view(x.size(0), -1, 1, 1) 
+        scale = self.se(out).view(x.size(0), -1, 1, 1)
         # the actual residual connection
         return self.relu(x + out * scale) # normal resblock skip connection + reweighted each channel by importance
 
@@ -155,7 +157,7 @@ MIXUP_OR_CUTMIX_START_EPOCH = 20 # mixup and cutmix need to work on the batches,
 # Tell the scheduler exactly how many total steps there are
 total_steps = len(training_loader) * EPOCHS
 
-# The one cycle Scheduler, basicly peak learning rate at epoch 9 and slow down by epoch 30, so it will be best for my 30 epoch limit
+# The one cycle Scheduler, basicly peak learning rate at epoch 9 and slow down to basiclly zero by epoch 30, so it will be best for my 30 epoch limit
 scheduler = torch.optim.lr_scheduler.OneCycleLR(
     optimizer,
     max_lr=3e-3, # peak learning rate
@@ -165,7 +167,7 @@ scheduler = torch.optim.lr_scheduler.OneCycleLR(
     final_div_factor=1000.0 # div peak lr by this and get ending learning rate
 )
 
-# define the cutmix and mixup image augmentations
+# define the cutmix and mixup image augmentations, fix overfitting
 cutmix = CutMix(num_classes=NUM_CLASSES, alpha=0.1) # just enough to prevent overfitting, tested to be best
 mixup = MixUp(num_classes=NUM_CLASSES, alpha=0.1) # just enough to prevent overfitting, tested to be best
 cutmix_or_mixup = v2.RandomChoice([cutmix, mixup]) # use it randomly on batches to prevent overfitting
