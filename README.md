@@ -15,3 +15,12 @@ My final model at `train.py` is without the valuation split for maximum accuracy
 
 ### Current best results
 My current best result CNN will be the one in the `train.ipynb` with the model saved at `pet_classifer_weights.pth`
+
+### References
+**Deep Residual Learning for Image Recognition**  
+He, K., Zhang, X., Ren, S., & Sun, J. (2016). *Deep Residual Learning for Image Recognition*. arXiv:1512.03385.  
+[Paper](https://arxiv.org/abs/1512.03385)
+
+**Squeeze-and-Excitation Networks**  
+Hu, J., Shen, L., Albanie, S., Sun, G., & Wu, E. (2018). *Squeeze-and-Excitation Networks*. arXiv:1709.01507.  
+[Paper](https://arxiv.org/abs/1709.01507)
